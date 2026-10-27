@@ -1,0 +1,5 @@
+import {Router} from 'express';import Service from '../models/Service.js';import {auth,allow} from '../middleware/auth.js';
+const r=Router();r.get('/',async(req,res)=>{const {q,category}=req.query;const filter={active:true};if(q)filter.$or=[{name:{$regex:q,$options:'i'}},{description:{$regex:q,$options:'i'}},{location:{$regex:q,$options:'i'}}];if(category)filter.category=category;res.json(await Service.find(filter).sort({category:1,name:1}));});
+r.post('/',auth,allow('admin'),async(req,res)=>res.status(201).json(await Service.create(req.body)));
+r.patch('/:id',auth,allow('admin'),async(req,res)=>{const s=await Service.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});if(!s)return res.status(404).json({message:'Service not found'});res.json(s);});
+r.delete('/:id',auth,allow('admin'),async(req,res)=>{const s=await Service.findByIdAndUpdate(req.params.id,{active:false},{new:true});if(!s)return res.status(404).json({message:'Service not found'});res.json({message:'Service archived'});});export default r;
